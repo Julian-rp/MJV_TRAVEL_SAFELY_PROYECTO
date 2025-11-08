@@ -3,14 +3,16 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # Cambia a 'master' si tu rama principal es 'master'
+      - main
   workflow_dispatch:
 
+# Permisos necesarios para GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Evitar múltiples deploys simultáneos
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -19,24 +21,49 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout código
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
 
-      - name: Install dependencies
-        working-directory: ./Frontend
-        run: npm install
+      - name: Verificar estructura
+        run: |
+          echo "Verificando estructura de carpetas..."
+          ls -la
+          ls -la Frontend/ || echo "⚠️ Carpeta Frontend no encontrada"
 
-      - name: Build
+      - name: Instalar dependencias
         working-directory: ./Frontend
-        run: npm run build
+        run: |
+          echo "Instalando dependencias..."
+          npm install --legacy-peer-deps
+          echo "✅ Dependencias instaladas"
+
+      - name: Build del proyecto
+        working-directory: ./Frontend
+        run: |
+          echo "Construyendo proyecto..."
+          npm run build
+          echo "✅ Build completado"
         env:
-          # Usa el secret configurado en GitHub, o la URL por defecto
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://tu-backend.vercel.app' }}
+
+      - name: Verificar carpeta dist
+        run: |
+          echo "Verificando carpeta dist..."
+          ls -la Frontend/dist/ || echo "⚠️ Carpeta dist no encontrada"
+          if [ -d "Frontend/dist" ]; then
+            echo "✅ Carpeta dist existe"
+            ls -la Frontend/dist/ | head -10
+          else
+            echo "❌ Error: Carpeta dist no se creó"
+            exit 1
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

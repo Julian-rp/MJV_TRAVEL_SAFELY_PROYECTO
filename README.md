@@ -237,21 +237,16 @@ Ver `CHECKLIST_ACTUALIZADO.md` para el estado completo de todas las funcionalida
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT.
 
 ## 👥 Autores
 
-- **Equipo de Desarrollo** - *Desarrollo inicial*
+- JULIAN RIVERA
+-MICHAEL PULIDO
+-VALENTINA ORTIZ
 
-## 🙏 Agradecimientos
-
-- NestJS por el excelente framework
-- Prisma por el ORM intuitivo
-- React por la librería de UI
 
 ---
 
-**Última actualización**: 2024-11-07
+
 
