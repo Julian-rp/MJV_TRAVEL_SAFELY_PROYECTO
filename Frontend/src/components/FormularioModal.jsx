@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../styles/FormularioModal.css";
+import { genericService } from "../services/api";
+import { validateDateRange, isValidDate, validatePhone } from "../utils/validation";
 
 export default function FormularioModal({
   isOpen,
@@ -93,7 +95,7 @@ export default function FormularioModal({
 
     // Validaciones específicas por tipo
     if (tipo === "usuarios") {
-      if (formData.Telefono && isNaN(parseInt(formData.Telefono))) {
+      if (formData.Telefono && !validatePhone(formData.Telefono)) {
         alert("El teléfono debe ser un número válido");
         return;
       }
@@ -110,47 +112,25 @@ export default function FormularioModal({
       }
 
       // Validar fechas
-      if (
-        formData.Hora_Salida &&
-        isNaN(new Date(formData.Hora_Salida).getTime())
-      ) {
+      if (formData.Hora_Salida && !isValidDate(formData.Hora_Salida)) {
         alert("La hora de salida no es una fecha válida");
         return;
       }
-      if (
-        formData.Hora_Entrada &&
-        isNaN(new Date(formData.Hora_Entrada).getTime())
-      ) {
+      if (formData.Hora_Entrada && !isValidDate(formData.Hora_Entrada)) {
         alert("La hora de entrada no es una fecha válida");
         return;
       }
 
       // Validar que la hora de entrada sea posterior a la de salida
-      if (formData.Hora_Salida && formData.Hora_Entrada) {
-        const salida = new Date(formData.Hora_Salida);
-        const entrada = new Date(formData.Hora_Entrada);
-        if (entrada <= salida) {
-          alert("La hora de entrada debe ser posterior a la hora de salida");
-          return;
-        }
+      if (
+        !validateDateRange(formData.Hora_Salida, formData.Hora_Entrada)
+      ) {
+        alert("La hora de entrada debe ser posterior a la hora de salida");
+        return;
       }
     }
 
     try {
-      const url = item
-        ? `http://localhost:3000/${tipo}/${
-            item[
-              tipo === "usuarios"
-                ? "id_usuario"
-                : tipo === "ruta"
-                ? "Id_ruta"
-                : "id_empresa"
-            ]
-          }`
-        : `http://localhost:3000/${tipo}`;
-
-      const method = item ? "PATCH" : "POST";
-
       // Limpiar datos antes de enviar (remover campos de relación)
       const cleanData = { ...formData };
       delete cleanData.empresa;
@@ -171,24 +151,23 @@ export default function FormularioModal({
         }
       }
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(cleanData),
-      });
-
-      // Verificar si la respuesta es exitosa
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+      let result;
+      if (item) {
+        // Actualizar
+        const idField =
+          tipo === "usuarios"
+            ? "id_usuario"
+            : tipo === "ruta"
+            ? "Id_ruta"
+            : "id_empresa";
+        result = await genericService.update(tipo, item[idField], cleanData);
+      } else {
+        // Crear
+        result = await genericService.create(tipo, cleanData);
       }
 
-      const result = await res.json();
-
       // Verificar si la operación fue exitosa
-      if (
-        result.exito === true ||
-        (result.exito !== false && !result.mensaje)
-      ) {
+      if (result.exito === true || (result.exito !== false && !result.mensaje)) {
         alert(
           item
             ? "Elemento actualizado correctamente"
@@ -203,7 +182,7 @@ export default function FormularioModal({
       }
     } catch (err) {
       console.error("Error al guardar:", err);
-      if (err.message.includes("HTTP error")) {
+      if (err.message && err.message.includes("HTTP error")) {
         alert(
           "Error de conexión con el servidor. Verifique que el backend esté ejecutándose."
         );

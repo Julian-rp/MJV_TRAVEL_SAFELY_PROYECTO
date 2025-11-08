@@ -63,10 +63,9 @@ export default function SolicitarRuta() {
           <span className="brand-name">travel safely</span>
         </div>
         <ul>
-          <li><a href="/">Inicio</a></li>
           <li><a href="/nosotros">Nosotros</a></li>
           <li><a href="/solicitar">Solicitar Ruta</a></li>
-          <li><a href="/registrate">Registrar Empleado</a></li>
+        
         </ul>
       </nav>
 

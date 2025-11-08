@@ -1,10 +1,7 @@
-/* Contenedor principal */
-.registrate-wrapper {
-  background-color: #f4f4f4;
+/* Página de Registro */
+.registrate-page {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background-color: #0d0d0d;
 }
 
 /* NAV */
@@ -12,16 +9,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 25px;
+  padding: 15px 40px;
   width: 100%;
-  background-color: #111;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  background-color: #0d0d0d;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .registrate-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .registrate-logo img {
@@ -29,126 +29,45 @@
   width: 50px;
   border-radius: 50%;
   object-fit: cover;
+  background-color: #ffffff;
+  padding: 5px;
+}
+
+.registrate-brand-name {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
 .registrate-menu {
   list-style: none;
   display: flex;
-  gap: 15px;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
 }
 
 .registrate-menu li a {
   text-decoration: none;
-  color: #f1ebeb;
+  color: #ffffff;
   font-weight: 500;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 6px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .registrate-menu li a:hover {
-  background-color: #f1ebeb;
-  color: #111;
-}
-
-/* FORMULARIO */
-.registrate-form-container {
-  background-color: #0a0a0a;
-  max-width: 450px;
-  width: 90%;
-  margin: 40px auto;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  color: white;
-}
-
-.registrate-img {
-  display: block;
-  margin: 0 auto 20px;
-  max-width: 200px;
-  border-radius: 8px;
-}
-
-.registrate-title {
-  text-align: center;
-  font-size: 20px;
-  margin-bottom: 25px;
-  letter-spacing: 1px;
-  border-bottom: 1px solid #fff;
-  padding-bottom: 10px;
-}
-
-.registrate-label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.registrate-input {
-  width: 100%;
-  padding: 10px 12px;
-  margin-bottom: 18px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.registrate-input:focus {
-  outline: none;
-  box-shadow: 0 0 5px #fff;
-  background-color: #f0f8ff;
-  color: #000;
-}
-
-.registrate-button {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  background: #111;
-  color: white;
-  font-weight: bold;
-  font-size: 15px;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.registrate-button:hover {
-  background: #333;
-  transform: scale(1.02);
-}
-
-/* Estilos para mensajes */
-.mensaje {
-  padding: 12px;
-  border-radius: 6px;
-  margin: 10px 0;
-  font-weight: 500;
-  text-align: center;
-}
-
-.mensaje.exito {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.mensaje.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Responsive */
-@media (max-width: 480px) {
-  .registrate-form-container {
-    padding: 20px;
+@media (max-width: 768px) {
+  .registrate-nav {
+    padding: 12px 20px;
   }
-  .registrate-button {
-    font-size: 14px;
+
+  .registrate-brand-name {
+    font-size: 18px;
   }
 }

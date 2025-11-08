@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "../styles/AdminDashboard.css";
 import FormularioModal from "../components/FormularioModal";
+import { usuariosService, rutasService, empresasService } from "../services/api";
+import { getUser, removeUser } from "../utils/auth";
+import Breadcrumbs from "../components/Breadcrumbs";
+import DataTable from "../components/DataTable";
 
 export default function AdminDashboard() {
   const [usuario, setUsuario] = useState(null);
@@ -17,21 +21,21 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     // Obtener datos del usuario desde localStorage
-    const usuarioData = localStorage.getItem("usuario");
+    const usuarioData = getUser();
     if (usuarioData) {
-      setUsuario(JSON.parse(usuarioData));
+      setUsuario(usuarioData);
     }
   }, []);
 
-  const cerrarSesion = () => {
-    localStorage.removeItem("usuario");
+  const cerrarSesion = async () => {
+    const { logout } = await import("../utils/auth");
+    await logout();
     window.location.href = "/iniciarsesion";
   };
 
   const obtenerUsuarios = async () => {
     try {
-      const res = await fetch("http://localhost:3000/usuarios");
-      const data = await res.json();
+      const data = await usuariosService.getAll();
       setUsuarios(data);
     } catch (err) {
       console.error("Error al obtener usuarios:", err);
@@ -40,8 +44,7 @@ export default function AdminDashboard() {
 
   const obtenerRutas = async () => {
     try {
-      const res = await fetch("http://localhost:3000/ruta");
-      const data = await res.json();
+      const data = await rutasService.getAll();
       setRutas(data);
     } catch (err) {
       console.error("Error al obtener rutas:", err);
@@ -50,8 +53,7 @@ export default function AdminDashboard() {
 
   const obtenerEmpresas = async () => {
     try {
-      const res = await fetch("http://localhost:3000/empresa");
-      const data = await res.json();
+      const data = await empresasService.getAll();
       setEmpresas(data);
     } catch (err) {
       console.error("Error al obtener empresas:", err);
@@ -60,10 +62,14 @@ export default function AdminDashboard() {
 
   const eliminarItem = async (tipo, id) => {
     try {
-      const res = await fetch(`http://localhost:3000/${tipo}/${id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
+      let data;
+      if (tipo === "usuarios") {
+        data = await usuariosService.delete(id);
+      } else if (tipo === "ruta") {
+        data = await rutasService.delete(id);
+      } else if (tipo === "empresa") {
+        data = await empresasService.delete(id);
+      }
 
       if (data.exito !== false) {
         // Recargar datos
@@ -104,12 +110,22 @@ export default function AdminDashboard() {
     obtenerEmpresas();
   }, []);
 
+  // Inicializar con rutas como vista por defecto
+  useEffect(() => {
+    if (vistaActiva === "dashboard") {
+      setVistaActiva("rutas");
+    }
+  }, []);
+
   return (
     <div className="admin-dashboard">
       <nav className="admin-nav">
         <div className="admin-logo">
-          <img src="../img/Logo.png" alt="Logo" />
-          <span>Travel Safely - Admin</span>
+          <div className="logo-square">MY</div>
+          <div className="admin-title-group">
+            <h1>Administrador</h1>
+            <span className="admin-subtitle">Travel Safely - Gestión Empresarial</span>
+          </div>
         </div>
         <div className="admin-user">
           <span>Bienvenido, {usuario?.Nom_completo}</span>
@@ -119,135 +135,188 @@ export default function AdminDashboard() {
         </div>
       </nav>
 
+      <Breadcrumbs />
+
+      {/* Barra de navegación con pestañas */}
+      <div className="admin-tabs">
+        <button
+          className={`admin-tab ${vistaActiva === "rutas" ? "active" : ""}`}
+          onClick={() => setVistaActiva("rutas")}
+        >
+          <span className="tab-icon">🔗</span>
+          Rutas Disponibles
+        </button>
+        <button
+          className={`admin-tab ${vistaActiva === "asignar" ? "active" : ""}`}
+          onClick={() => setVistaActiva("asignar")}
+        >
+          <span className="tab-icon">🚗</span>
+          Asignar Ruta
+        </button>
+        <button
+          className={`admin-tab ${vistaActiva === "usuarios" ? "active" : ""}`}
+          onClick={() => setVistaActiva("usuarios")}
+        >
+          <span className="tab-icon">👤</span>
+          Registrar Usuario
+        </button>
+      </div>
+
       <div className="admin-content">
-        <h1>Panel de Administración</h1>
 
-        <div className="admin-cards">
-          <div className="admin-card">
-            <h3>👥 Gestión de Usuarios</h3>
-            <p>Administrar empleados y conductores</p>
-            <button onClick={() => setVistaActiva("usuarios")}>
-              Gestionar Usuarios
-            </button>
-          </div>
-
-          <div className="admin-card">
-            <h3>🚌 Gestión de Rutas</h3>
-            <p>Crear y administrar rutas de transporte</p>
-            <button onClick={() => setVistaActiva("rutas")}>
-              Gestionar Rutas
-            </button>
-          </div>
-
-          <div className="admin-card">
-            <h3>🏢 Gestión de Empresas</h3>
-            <p>Administrar empresas asociadas</p>
-            <button onClick={() => setVistaActiva("empresas")}>
-              Gestionar Empresas
-            </button>
-          </div>
-
-          <div className="admin-card">
-            <h3>📊 Reportes</h3>
-            <p>Ver estadísticas y reportes</p>
-            <button onClick={() => setVistaActiva("reportes")}>
-              Ver Reportes
-            </button>
-          </div>
-        </div>
-
-        {/* Vista de Usuarios */}
+        {/* Vista de Usuarios / Registrar Usuario */}
         {vistaActiva === "usuarios" && (
           <div className="gestion-section">
             <div className="section-header">
-              <h2>Gestión de Usuarios</h2>
+              <h2>Registrar Usuario</h2>
               <button
                 onClick={() => crearItem("usuarios")}
                 className="btn-crear"
               >
-                + Crear Usuario
+                + Registrar Nuevo Usuario
               </button>
             </div>
-            <div className="items-grid">
-              {usuarios.map((user) => (
-                <div key={user.id_usuario} className="item-card">
-                  <h4>{user.Nom_completo}</h4>
-                  <p>
-                    <strong>Tipo:</strong> {user.Tip_usuario}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {user.Correo}
-                  </p>
-                  <p>
-                    <strong>Teléfono:</strong> {user.Telefono}
-                  </p>
-                  <p>
-                    <strong>Dirección:</strong> {user.direccion}
-                  </p>
-                  <div className="item-actions">
-                    <button
-                      onClick={() => editarItem("usuarios", user)}
-                      className="btn-editar"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => eliminarItem("usuarios", user.id_usuario)}
-                      className="btn-eliminar"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <DataTable
+              data={usuarios}
+              columns={[
+                {
+                  key: 'Nom_completo',
+                  header: 'Nombre Completo',
+                  sortable: true,
+                },
+                {
+                  key: 'Tip_usuario',
+                  header: 'Tipo de Usuario',
+                  sortable: true,
+                },
+                {
+                  key: 'Correo',
+                  header: 'Email',
+                  sortable: true,
+                },
+                {
+                  key: 'Telefono',
+                  header: 'Teléfono',
+                  sortable: true,
+                },
+                {
+                  key: 'direccion',
+                  header: 'Dirección',
+                  sortable: true,
+                },
+                {
+                  key: 'actions',
+                  header: 'Acciones',
+                  sortable: false,
+                  filterable: false,
+                  render: (user) => (
+                    <div className="item-actions" style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          editarItem("usuarios", user);
+                        }}
+                        className="btn-editar"
+                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          eliminarItem("usuarios", user.id_usuario);
+                        }}
+                        className="btn-eliminar"
+                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  ),
+                },
+              ]}
+              itemsPerPage={10}
+              searchable={true}
+              sortable={true}
+              filterable={true}
+              emptyMessage="No hay usuarios registrados"
+            />
           </div>
         )}
 
         {/* Vista de Rutas */}
         {vistaActiva === "rutas" && (
+          <div className="rutas-disponibles-section">
+            <div className="rutas-header-section">
+              <h2>Rutas Disponibles</h2>
+              <span className="total-rutas-badge">Total Rutas: {rutas.length}</span>
+            </div>
+            <div className="rutas-grid-admin">
+              {rutas.map((ruta) => {
+                const empleadosAsignados = ruta.ruta_empleado?.map(re => re.usuario).filter(Boolean) || [];
+                const capacidad = ruta.Capacidad || 20;
+                const disponibles = capacidad - empleadosAsignados.length;
+                const estado = disponibles === 0 ? 'Completo' : 'Disponible';
+                const direccionEncuentro = ruta.Direccion_Encuentro || 'Sin dirección';
+                
+                return (
+                  <div key={ruta.Id_ruta} className="ruta-card-admin">
+                    <div className="ruta-header-card">
+                      <div className="ruta-location">
+                        <span className="location-icon">📍</span>
+                        <strong>{direccionEncuentro}</strong>
+                      </div>
+                      <button className={`ruta-status ${estado.toLowerCase()}`}>
+                        {estado}
+                      </button>
+                    </div>
+                    
+                    <div className="ruta-info-card">
+                      <p className="ruta-info-item">
+                        <span className="info-label">👤 Conductor:</span> {ruta.conductor?.Nom_completo || 'Sin asignar'}
+                      </p>
+                      <p className="ruta-info-item">
+                        <span className="info-label">🚗 Placa:</span> {ruta.Placas}
+                      </p>
+                      <p className="ruta-info-item">
+                        <span className="info-label">{capacidad} Capacidad</span>
+                      </p>
+                      <p className={`ruta-info-item disponibles ${disponibles === 0 ? 'completo' : 'disponible'}`}>
+                        <span className="info-label">{disponibles} Disponibles</span>
+                      </p>
+                    </div>
+
+                    {empleadosAsignados.length > 0 && (
+                      <div className="pasajeros-section-card">
+                        <strong className="pasajeros-title">Pasajeros:</strong>
+                        <ul className="pasajeros-list">
+                          {empleadosAsignados.map((empleado, idx) => (
+                            <li key={empleado.id_usuario || idx}>
+                              • {empleado.Nom_completo}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Vista de Asignar Ruta */}
+        {vistaActiva === "asignar" && (
           <div className="gestion-section">
             <div className="section-header">
-              <h2>Gestión de Rutas</h2>
+              <h2>Asignar Ruta</h2>
               <button onClick={() => crearItem("ruta")} className="btn-crear">
-                + Crear Ruta
+                + Crear Nueva Ruta
               </button>
             </div>
-            <div className="items-grid">
-              {rutas.map((ruta) => (
-                <div key={ruta.Id_ruta} className="item-card">
-                  <h4>Ruta #{ruta.Id_ruta}</h4>
-                  <p>
-                    <strong>Placas:</strong> {ruta.Placas}
-                  </p>
-                  <p>
-                    <strong>Hora Salida:</strong>{" "}
-                    {new Date(ruta.Hora_Salida).toLocaleString()}
-                  </p>
-                  <p>
-                    <strong>Hora Entrada:</strong>{" "}
-                    {new Date(ruta.Hora_Entrada).toLocaleString()}
-                  </p>
-                  <p>
-                    <strong>Usuario ID:</strong> {ruta.Id_usuario}
-                  </p>
-                  <div className="item-actions">
-                    <button
-                      onClick={() => editarItem("ruta", ruta)}
-                      className="btn-editar"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => eliminarItem("ruta", ruta.Id_ruta)}
-                      className="btn-eliminar"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p style={{ color: '#666', marginTop: '1rem' }}>
+              Aquí puedes asignar empleados a rutas existentes o crear nuevas rutas.
+            </p>
           </div>
         )}
 
@@ -333,17 +402,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Botón para volver al dashboard */}
-        {vistaActiva !== "dashboard" && (
-          <div className="volver-dashboard">
-            <button
-              onClick={() => setVistaActiva("dashboard")}
-              className="btn-volver"
-            >
-              ← Volver al Dashboard
-            </button>
-          </div>
-        )}
 
         {/* Modal para crear/editar elementos */}
         <FormularioModal

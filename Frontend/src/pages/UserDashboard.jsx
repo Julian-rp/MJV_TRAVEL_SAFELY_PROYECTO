@@ -12,8 +12,9 @@ export default function UserDashboard() {
     }
   }, []);
 
-  const cerrarSesion = () => {
-    localStorage.removeItem("usuario");
+  const cerrarSesion = async () => {
+    const { logout } = await import("../utils/auth");
+    await logout();
     window.location.href = "/iniciarsesion";
   };
 

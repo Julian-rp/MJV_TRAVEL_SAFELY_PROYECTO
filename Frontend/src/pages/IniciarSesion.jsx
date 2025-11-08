@@ -1,183 +1,276 @@
-import React, { useState } from "react";
-import Registrate from "./Registrate";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/iniciarSesion.css";
+import { authService } from "../services/api";
+import { saveUser } from "../utils/auth";
+import { validateEmail } from "../utils/validation";
+import RegistroModal from "../components/RegistroModal";
 
 export default function IniciarSesion() {
+  const navigate = useNavigate();
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [rolSeleccionado, setRolSeleccionado] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [mensajeError, setMensajeError] = useState("");
 
-  const iniciarSesion = async () => {
-    const data = {
-      correo: document.getElementById("loginCorreo").value,
-      contrasena: document.getElementById("loginContrasena").value,
+  // Cargar roles disponibles al montar el componente
+  useEffect(() => {
+    const cargarRoles = async () => {
+      try {
+        const result = await authService.obtenerRoles();
+        // Roles completos que incluyen todos los tipos disponibles
+        const todosLosRoles = [
+          "Empleado",
+          "Administrador",
+          "Conductor",
+          "Asesor de Ruta",
+          "Patrocinador"
+        ];
+        
+        if (result.exito && result.roles && result.roles.length > 0) {
+          // Combinar roles del backend con los roles adicionales
+          const rolesCombinados = [...new Set([...result.roles, ...todosLosRoles])].sort();
+          setRoles(rolesCombinados);
+          // Establecer el primer rol como predeterminado
+          setRolSeleccionado(rolesCombinados[0]);
+        } else {
+          // Usar lista completa de roles si no hay respuesta del backend
+          setRoles(todosLosRoles);
+          setRolSeleccionado(todosLosRoles[0]);
+        }
+      } catch (error) {
+        console.error("Error al cargar roles:", error);
+        // Roles por defecto completos si falla la carga
+        const rolesPorDefecto = [
+          "Empleado",
+          "Administrador",
+          "Conductor",
+          "Asesor de Ruta",
+          "Patrocinador"
+        ];
+        setRoles(rolesPorDefecto);
+        setRolSeleccionado(rolesPorDefecto[0]);
+      }
     };
+    cargarRoles();
+  }, []);
+
+  const iniciarSesion = async (e) => {
+    e.preventDefault();
+    setMensajeError("");
+    setLoading(true);
+
+    const correo = document.getElementById("loginCorreo")?.value || "";
+    const contrasena = document.getElementById("loginContrasena")?.value || "";
 
     // Validar que ambos campos estén llenos
-    if (!data.correo || !data.contrasena) {
-      alert("Por favor, complete todos los campos");
+    if (!correo || !contrasena) {
+      setMensajeError("Por favor, complete todos los campos");
+      setLoading(false);
       return;
     }
 
     // Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.correo)) {
-      alert("Por favor, ingrese un correo electrónico válido");
+    if (!validateEmail(correo)) {
+      setMensajeError("Por favor, ingrese un correo electrónico válido");
+      setLoading(false);
+      return;
+    }
+
+    // Validar que se haya seleccionado un rol
+    if (!rolSeleccionado) {
+      setMensajeError("Por favor, seleccione un rol");
+      setLoading(false);
       return;
     }
 
     try {
-      const res = await fetch("http://localhost:3000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
+      const result = await authService.login(correo, contrasena, rolSeleccionado);
 
       if (result.exito) {
-        // Guardar usuario en localStorage
-        localStorage.setItem("usuario", JSON.stringify(result.data));
+        // Extraer tokens del resultado
+        const tokens = {
+          access_token: result.access_token,
+          refresh_token: result.refresh_token,
+          expires_in: result.expires_in,
+        };
+        
+        // Guardar usuario y tokens en localStorage
+        saveUser(result.data, tokens);
 
         // Redireccionar según el tipo de usuario
-        if (result.data.Tip_usuario === "Administrador") {
+        const tipoUsuario = result.data.Tip_usuario;
+        if (tipoUsuario === "Administrador") {
           window.location.href = "/admin-dashboard";
+        } else if (tipoUsuario === "Conductor") {
+          window.location.href = "/conductor-dashboard";
+        } else if (tipoUsuario === "Asesor de Ruta") {
+          window.location.href = "/asesor-dashboard";
+        } else if (tipoUsuario === "Patrocinador") {
+          window.location.href = "/patrocinador-dashboard";
         } else {
-          window.location.href = "/user-dashboard";
+          // Empleado y otros usuarios
+          window.location.href = "/empleado-dashboard";
         }
       } else {
-        alert(result.mensaje);
+        setMensajeError(result.mensaje || "Error al iniciar sesión");
       }
     } catch (err) {
       console.error("❌ Error en login:", err);
-      alert("Error al conectar con el servidor. Intente nuevamente.");
+      setMensajeError("Error al conectar con el servidor. Intente nuevamente.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const registrarEmpleado = async () => {
-    const data = {
-      nombre: document.getElementById("nombre").value,
-      apellido: document.getElementById("apellido").value,
-      telefono: document.getElementById("telefono").value,
-      correo: document.getElementById("correo").value,
-      direccion: document.getElementById("direccion").value,
-      contrasena: document.getElementById("contrasena").value,
-    };
-
-    // Validar que todos los campos estén llenos
-    if (
-      !data.nombre ||
-      !data.apellido ||
-      !data.telefono ||
-      !data.correo ||
-      !data.direccion ||
-      !data.contrasena
-    ) {
-      alert("Por favor, complete todos los campos");
-      return;
-    }
-
-    // Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.correo)) {
-      alert("Por favor, ingrese un correo electrónico válido");
-      return;
-    }
-
-    // Validar longitud de contraseña
-    if (data.contrasena.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
-    try {
-      const res = await fetch("http://localhost:3000/registro_empleado", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
-
-      if (result.exito) {
-        alert(`¡${result.mensaje}!`);
-        setMostrarRegistro(false);
-        // Limpiar formulario
-        document.getElementById("nombre").value = "";
-        document.getElementById("apellido").value = "";
-        document.getElementById("telefono").value = "";
-        document.getElementById("correo").value = "";
-        document.getElementById("direccion").value = "";
-        document.getElementById("contrasena").value = "";
-      } else {
-        alert(result.mensaje);
-      }
-    } catch (err) {
-      console.error("❌ Error en registro:", err);
-      alert("Error al conectar con el servidor. Intente nuevamente.");
-    }
-  };
 
   return (
-    <>
-      <nav>
-        <div className="logo">
-          <img src="../img/Logo.png" alt="Logo MJ" />
+    <div className="login-page">
+      {/* Header */}
+      <nav className="login-nav">
+        <div className="login-logo">
+          <img src="/img/Logo.png" alt="Logo MJ" />
           <span className="brand-name">travel safely</span>
         </div>
-        <ul>
+        <ul className="login-nav-links">
           <li>
-            <a href="/">Inicio</a>
+            <Link to="/">Inicio</Link>
           </li>
         </ul>
       </nav>
 
-      {!mostrarRegistro ? (
-        <div className="card" id="loginCard">
-          <div className="logo-container">
-            <img src="../img/Logo.png" alt="Logo Empresa" />
+      {/* Contenido Principal */}
+      <div className="login-container">
+        {/* Sección Izquierda - Bienvenida */}
+        <div className="login-welcome">
+          <h1 className="welcome-title">
+            Bienvenido a <span className="title-highlight">Travel Safely</span>
+          </h1>
+          <p className="welcome-subtitle">
+            Tu solución integral de transporte empresarial. Conectamos empleados
+            con rutas seguras, cómodas y puntuales.
+          </p>
+
+          <div className="features-list">
+            <div className="feature-card">
+              <div className="feature-icon">🚐</div>
+              <div className="feature-content">
+                <h3>Transporte Seguro</h3>
+                <p>Rutas monitoreadas 24/7</p>
+              </div>
+            </div>
+
+            <div className="feature-card">
+              <div className="feature-icon">⏰</div>
+              <div className="feature-content">
+                <h3>Puntualidad Garantizada</h3>
+                <p>Tracking en tiempo real</p>
+              </div>
+            </div>
+
+            <div className="feature-card">
+              <div className="feature-icon">💼</div>
+              <div className="feature-content">
+                <h3>Servicio Empresarial</h3>
+                <p>Comodidad para tu equipo</p>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Sección Derecha - Formulario */}
+        <div className="login-form-container">
+          <form className="login-form" onSubmit={iniciarSesion}>
+            <div className="form-logo">
+              <div className="logo-square">MJV</div>
+          </div>
+            <h2 className="form-title">Iniciar Sesión</h2>
+            <p className="form-subtitle">
+              Accede a tu cuenta para gestionar tus rutas
+            </p>
+
+            {mensajeError && (
+              <div className="error-message">{mensajeError}</div>
+            )}
+
+            <div className="form-group">
+              <label htmlFor="loginCorreo">Correo electrónico o teléfono</label>
           <input
             type="email"
             id="loginCorreo"
-            placeholder="Correo electrónico o número de teléfono"
+                placeholder="ejemplo@empresa.com"
             required
           />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="loginContrasena">Contraseña</label>
           <input
             type="password"
             id="loginContrasena"
-            placeholder="Contraseña"
+                placeholder="Ingresa tu contraseña"
             required
           />
-          <button className="btn-login" onClick={iniciarSesion}>
-            Iniciar sesión
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="rolSelect">Selecciona tu rol</label>
+              <select
+                id="rolSelect"
+                value={rolSeleccionado}
+                onChange={(e) => setRolSeleccionado(e.target.value)}
+                required
+                className="role-select"
+              >
+                {roles.map((rol) => (
+                  <option key={rol} value={rol}>
+                    {rol}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="btn-login-primary"
+              disabled={loading}
+            >
+              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
           </button>
-          <hr />
+
+            <div className="forgot-password-link">
+              <Link to="/solicitar-restablecimiento" className="link-forgot-password">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+
+            <div className="form-footer">
+              <p className="register-question">¿Eres nuevo?</p>
           <button
-            className="btn-create"
+                type="button"
+                className="btn-register-link"
             onClick={() => setMostrarRegistro(true)}
           >
-            Registrar Empleado
+                Registrarse+
           </button>
         </div>
-      ) : (
-        <div className="card" id="registroCard">
-          <div className="logo-container">
-            <img src="../img/Logo.png" alt="Logo Empresa" />
+          </form>
+        </div>
           </div>
-          <h3>Crear cuenta nueva</h3>
-          <input type="text" id="nombre" placeholder="Nombre" required />
-          <input type="text" id="apellido" placeholder="Apellido" required />
-          <input type="text" id="telefono" placeholder="Teléfono" required />
-          <input type="email" id="correo" placeholder="Correo" required />
-          <input type="text" id="direccion" placeholder="Dirección" required />
-          <input
-            type="password"
-            id="contrasena"
-            placeholder="Contraseña"
-            required
-          />
-          <button className="btn-create" onClick={registrarEmpleado}>
-            Registrar
-          </button>
+
+      {/* Modal de Registro */}
+      <RegistroModal
+        isOpen={mostrarRegistro}
+        onClose={() => {
+          setMostrarRegistro(false);
+          setMensajeError("");
+        }}
+        onSuccess={() => {
+          setMensajeError("");
+          // Opcional: mostrar mensaje de éxito
+        }}
+      />
         </div>
-      )}
-    </>
   );
 }
