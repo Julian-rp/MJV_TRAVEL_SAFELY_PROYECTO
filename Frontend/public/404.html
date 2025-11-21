@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <title>Travel Safely - Redirigiendo...</title>
+    <script>
+      // Guardar la ruta actual antes de redirigir
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+      const search = window.location.search;
+      
+      // Redirigir a index.html con la ruta original
+      const redirectPath = '/MJV_TRAVEL_SAFELY_PROYECTO/' + (hash || search || '');
+      window.location.replace(redirectPath);
+    </script>
+  </head>
+  <body>
+    <p>Redirigiendo...</p>
+  </body>
+</html>
+

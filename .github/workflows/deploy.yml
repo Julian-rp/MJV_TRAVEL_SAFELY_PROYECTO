@@ -1,0 +1,86 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Permisos necesarios para GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Evitar múltiples deploys simultáneos
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Verificar estructura
+        run: |
+          echo "Verificando estructura de carpetas..."
+          ls -la
+          ls -la Frontend/ || echo "⚠️ Carpeta Frontend no encontrada"
+
+      - name: Instalar dependencias
+        working-directory: ./Frontend
+        run: |
+          echo "Instalando dependencias..."
+          npm install --legacy-peer-deps
+          echo "✅ Dependencias instaladas"
+
+      - name: Build del proyecto
+        working-directory: ./Frontend
+        run: |
+          echo "Construyendo proyecto..."
+          npm run build
+          echo "✅ Build completado"
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://tu-backend.vercel.app' }}
+
+      - name: Verificar carpeta dist
+        run: |
+          echo "Verificando carpeta dist..."
+          ls -la Frontend/dist/ || echo "⚠️ Carpeta dist no encontrada"
+          if [ -d "Frontend/dist" ]; then
+            echo "✅ Carpeta dist existe"
+            ls -la Frontend/dist/ | head -10
+          else
+            echo "❌ Error: Carpeta dist no se creó"
+            exit 1
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './Frontend/dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

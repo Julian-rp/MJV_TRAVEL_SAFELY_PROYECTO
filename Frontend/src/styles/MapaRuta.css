@@ -1,0 +1,443 @@
+.mapa-ruta-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.mapa-header-full {
+  background: #000000;
+  color: white;
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.mapa-header-info {
+  flex: 1;
+  margin-left: 2rem;
+}
+
+.mapa-header-info h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.mapa-subtitle {
+  margin: 0.5rem 0 0 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.btn-volver-mapa {
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-volver-mapa:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateX(-3px);
+}
+
+.btn-abrir-maps-externo {
+  background: white;
+  color: #000000;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.btn-abrir-maps-externo:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mapa-content-full {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  height: calc(100vh - 90px);
+  overflow: hidden;
+}
+
+.mapa-sidebar {
+  background: white;
+  overflow-y: auto;
+  padding: 1.5rem;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mapa-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.mapa-sidebar-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #333;
+  font-weight: 700;
+}
+
+.badge-paradas {
+  background: linear-gradient(135deg, #FF9800 0%, #FB8C00 100%);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.mapa-lista-empleados {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.empleado-item-mapa {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border-left: 4px solid #FF9800;
+  transition: all 0.3s ease;
+}
+
+.empleado-item-mapa:hover {
+  background: #f0f0f0;
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-left-color: #F57C00;
+}
+
+.empleado-numero {
+  background: linear-gradient(135deg, #FF9800 0%, #FB8C00 100%);
+  color: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3);
+}
+
+.empleado-info-mapa {
+  flex: 1;
+  min-width: 0;
+}
+
+.empleado-info-mapa strong {
+  display: block;
+  font-size: 1.05rem;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.empleado-direccion {
+  margin: 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.empleado-telefono {
+  margin: 0.5rem 0;
+  color: #2196F3;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.btn-ver-mapa-individual {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.btn-ver-mapa-individual:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+}
+
+.mapa-destino-section {
+  padding: 1.25rem;
+  background: #fff3e0;
+  border-radius: 12px;
+  border-left: 4px solid #FF9800;
+}
+
+.mapa-destino-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #FF9800;
+  font-weight: 700;
+}
+
+.destino-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.destino-direccion {
+  margin: 0;
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.mapa-info-ruta {
+  padding: 1.25rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border-left: 4px solid #000000;
+}
+
+.mapa-info-ruta h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #000000;
+  font-weight: 700;
+}
+
+.info-ruta-item {
+  margin: 0.5rem 0;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.info-ruta-item strong {
+  color: #000000;
+  font-weight: 700;
+}
+
+.mapa-principal {
+  position: relative;
+  background: #e0e0e0;
+  overflow: hidden;
+}
+
+.mapa-iframe-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.mapa-overlay-controls {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  z-index: 10;
+}
+
+.mapa-controls-info {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.mapa-controls-info span {
+  padding: 0.4rem 0.8rem;
+  background: #f0f0f0;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.btn-abrir-ruta-completa {
+  background: #000000;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.btn-abrir-ruta-completa:hover {
+  background: #333333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mapa-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #FF9800;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.mapa-vacio-full {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 90px);
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.mapa-vacio-icono {
+  font-size: 4rem;
+}
+
+.mapa-vacio-full p {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* Scrollbar personalizado */
+.mapa-sidebar::-webkit-scrollbar,
+.mapa-lista-empleados::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mapa-sidebar::-webkit-scrollbar-track,
+.mapa-lista-empleados::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.mapa-sidebar::-webkit-scrollbar-thumb,
+.mapa-lista-empleados::-webkit-scrollbar-thumb {
+  background: #FF9800;
+  border-radius: 4px;
+}
+
+.mapa-sidebar::-webkit-scrollbar-thumb:hover,
+.mapa-lista-empleados::-webkit-scrollbar-thumb:hover {
+  background: #F57C00;
+}
+
+.mapa-placeholder-full {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+}
+
+.mapa-placeholder-content {
+  text-align: center;
+  color: white;
+  padding: 3rem;
+}
+
+.mapa-icon-grande {
+  font-size: 5rem;
+  margin-bottom: 1rem;
+}
+
+.mapa-placeholder-content h3 {
+  font-size: 2rem;
+  margin: 1rem 0;
+  font-weight: 700;
+}
+
+.mapa-placeholder-content p {
+  font-size: 1.1rem;
+  margin: 1rem 0 2rem 0;
+  opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .mapa-content-full {
+    grid-template-columns: 350px 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .mapa-content-full {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .mapa-sidebar {
+    max-height: 300px;
+    border-right: none;
+    border-bottom: 2px solid #e0e0e0;
+  }
+
+  .mapa-header-full {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .mapa-header-info {
+    margin-left: 0;
+  }
+}
+

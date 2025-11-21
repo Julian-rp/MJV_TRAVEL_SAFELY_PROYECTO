@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:@localhost:3306/travel_safely"
+}
+
+model ruta {
+  Id_ruta             Int             @id @default(autoincrement())
+  Placas              String          @db.VarChar(50)
+  Hora_Salida         DateTime        @default(now())
+  Hora_Entrada        DateTime        @default(now())
+  Direccion_Encuentro String?         @db.VarChar(200)
+  Marca               String?         @db.VarChar(100)
+  Capacidad           Int             @default(20)
+  Papeles_Vehiculo    String?         @db.VarChar(200)
+  Id_conductor        Int?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime?       @default(now())
+  createdBy           Int?
+  updatedBy           Int?
+  creator             usuarios?       @relation("RutaCreatedBy", fields: [createdBy], references: [id_usuario])
+  updater             usuarios?       @relation("RutaUpdatedBy", fields: [updatedBy], references: [id_usuario])
+  conductor           usuarios?       @relation("ConductorRutas", fields: [Id_conductor], references: [id_usuario])
+  asesor_ruta         asesor_ruta[]
+  ruta_empleado       ruta_empleado[]
+  ruta_servicio       ruta_servicio[]
+  solicitudes_ruta    solicitud_ruta[]
+
+  @@index([Id_conductor])
+  @@index([createdBy])
+  @@index([updatedBy])
+}
+
+model asesor_ruta {
+  Id_asesor Int    @id @default(autoincrement())
+  Nombre    String @db.VarChar(100)
+  Apellido  String @db.VarChar(100)
+  Telefono  Int?
+  Id_ruta   Int?
+  ruta      ruta?  @relation(fields: [Id_ruta], references: [Id_ruta])
+
+  @@index([Id_ruta], map: "asesor_ruta_Id_ruta_fkey")
+}
+
+model usuarios {
+  id_usuario       Int              @id @default(autoincrement())
+  Tip_usuario      String           @db.VarChar(100)
+  Nom_completo     String           @db.VarChar(150)
+  direccion        String?          @db.VarChar(200)
+  Correo           String?          @unique @db.VarChar(150)
+  Telefono         Int?
+  Id_empresa       Int?
+  contrasena       String?          @db.VarChar(150)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime?        @default(now())
+  createdBy        Int?
+  updatedBy        Int?
+  creator          usuarios?        @relation("UsuarioCreatedBy", fields: [createdBy], references: [id_usuario])
+  updater          usuarios?        @relation("UsuarioUpdatedBy", fields: [updatedBy], references: [id_usuario])
+  ruta             ruta[]           @relation("ConductorRutas")
+  ruta_empleado    ruta_empleado[]
+  solicitudes_ruta solicitud_ruta[]
+  password_reset_tokens password_reset_token[]
+  empresa          empresa?         @relation(fields: [Id_empresa], references: [id_empresa])
+  rutasCreated     ruta[]           @relation("RutaCreatedBy")
+  rutasUpdated     ruta[]           @relation("RutaUpdatedBy")
+  empresasCreated  empresa[]        @relation("EmpresaCreatedBy")
+  empresasUpdated  empresa[]        @relation("EmpresaUpdatedBy")
+  usuariosCreated  usuarios[]       @relation("UsuarioCreatedBy")
+  usuariosUpdated  usuarios[]       @relation("UsuarioUpdatedBy")
+  solicitudesCreated solicitud_ruta[] @relation("SolicitudCreatedBy")
+  solicitudesUpdated solicitud_ruta[] @relation("SolicitudUpdatedBy")
+
+  @@index([Id_empresa], map: "usuarios_Id_empresa_fkey")
+  @@index([createdBy])
+  @@index([updatedBy])
+}
+
+model patrocinador {
+  Id_patrocina Int      @id @default(autoincrement())
+  Nombre       String   @db.VarChar(150)
+  Monto_pago   Int
+  Metodo_pago  String?  @db.VarChar(100)
+  Id_empresa   Int?
+  empresa      empresa? @relation(fields: [Id_empresa], references: [id_empresa])
+
+  @@index([Id_empresa], map: "patrocinador_Id_empresa_fkey")
+}
+
+model empresa {
+  id_empresa   Int            @id @default(autoincrement())
+  Tip_empresa  String         @db.VarChar(100)
+  Nom_empresa  String         @db.VarChar(150)
+  Direccion    String?        @db.VarChar(200)
+  Correo       String?        @db.VarChar(150)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime?      @default(now())
+  createdBy    Int?
+  updatedBy    Int?
+  creator      usuarios?      @relation("EmpresaCreatedBy", fields: [createdBy], references: [id_usuario])
+  updater      usuarios?      @relation("EmpresaUpdatedBy", fields: [updatedBy], references: [id_usuario])
+  patrocinador patrocinador[]
+  usuarios     usuarios[]
+
+  @@index([createdBy])
+  @@index([updatedBy])
+}
+
+model ruta_servicio {
+  Id_ruta_servicio Int       @id @default(autoincrement())
+  Id_ruta          Int?
+  Id_servicio      Int?
+  ruta             ruta?     @relation(fields: [Id_ruta], references: [Id_ruta])
+  servicio         servicio? @relation(fields: [Id_servicio], references: [Id_servicio])
+
+  @@index([Id_ruta], map: "ruta_servicio_Id_ruta_fkey")
+  @@index([Id_servicio], map: "ruta_servicio_Id_servicio_fkey")
+}
+
+model servicio {
+  Id_servicio   Int             @id @default(autoincrement())
+  Direccion     String          @db.VarChar(200)
+  parada        parada[]
+  ruta_servicio ruta_servicio[]
+}
+
+model parada {
+  Id_parada   Int       @id @default(autoincrement())
+  Direccion   String    @db.VarChar(200)
+  Barrio      String?   @db.VarChar(100)
+  Id_servicio Int?
+  servicio    servicio? @relation(fields: [Id_servicio], references: [Id_servicio])
+
+  @@index([Id_servicio], map: "parada_Id_servicio_fkey")
+}
+
+model solicitud_ruta {
+  Id_solicitud   Int       @id @default(autoincrement())
+  Id_usuario     Int
+  Direccion      String    @db.VarChar(200)
+  Hora_Salida    DateTime?
+  Hora_Entrada   DateTime?
+  Estado         String    @default("Pendiente") @db.VarChar(50)
+  Observaciones  String?   @db.Text
+  Id_conductor   Int?
+  Id_ruta        Int?      @unique
+  FechaSolicitud DateTime  @default(now())
+  FechaRespuesta DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  createdBy      Int?
+  updatedBy      Int?
+  creator        usuarios? @relation("SolicitudCreatedBy", fields: [createdBy], references: [id_usuario])
+  updater        usuarios? @relation("SolicitudUpdatedBy", fields: [updatedBy], references: [id_usuario])
+  ruta           ruta?     @relation(fields: [Id_ruta], references: [Id_ruta])
+  usuario        usuarios  @relation(fields: [Id_usuario], references: [id_usuario])
+
+  @@index([Id_usuario])
+  @@index([Estado])
+  @@index([Id_conductor])
+  @@index([createdBy])
+  @@index([updatedBy])
+}
+
+model ruta_empleado {
+  Id_ruta_empleado Int      @id @default(autoincrement())
+  Id_ruta          Int
+  Id_usuario       Int
+  FechaAsignacion  DateTime @default(now())
+  ruta             ruta     @relation(fields: [Id_ruta], references: [Id_ruta], onDelete: Cascade)
+  usuario          usuarios @relation(fields: [Id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@unique([Id_ruta, Id_usuario])
+  @@index([Id_ruta])
+  @@index([Id_usuario])
+}
+
+model password_reset_token {
+  Id_token    Int      @id @default(autoincrement())
+  Id_usuario  Int
+  token       String   @unique @db.VarChar(255)
+  expiresAt   DateTime
+  used        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  usuario     usuarios @relation(fields: [Id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@index([token])
+  @@index([Id_usuario])
+  @@index([expiresAt])
+}
+
+model token_blacklist {
+  Id_token    Int      @id @default(autoincrement())
+  token       String   @unique @db.VarChar(500)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  Id_usuario  Int?
+
+  @@index([token])
+  @@index([expiresAt])
+}
